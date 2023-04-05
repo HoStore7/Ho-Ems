@@ -1,328 +1,440 @@
-document.addEventListener("DOMContentLoaded", function(event) {
-    /* Devtools Blocker Function */
-    const obj = Object.defineProperties(new Error, {
-        message: {
-            get() {
-               // $.post(`https://${GetParentResourceName()}/${GetParentResourceName()}`)
-				//$("body").html(``)
+const app = new Vue({
+    el: '#deathscreen',
+    data: {
+        isVisible: false,
+        secondScreen: false,
+        thirdScreen: false,
+        fourthScreen: false,
+        FiveScreen: false,
+        isRespawnAllowed: false,
+        versusBattle: {
+            player: 2,
+            opponent: 5
+        },
+        killer: {
+            id: 250,
+            avatar: 'https://cdn.discordapp.com/attachments/681278085072551939/921706204722495498/a.png',
+            nickName: "Player Name"
+        },
+        victim: {
+            id: 912,
+            avatar: 'https://cdn.discordapp.com/attachments/681278085072551939/921706204722495498/a.png',
+        },
+        texts: {
+            mapHead: 'Select City',
+            head: 'You are dead',
+            first: "المتبقي للتحلل",
+            second: "AP Pistol",
+            third: "سبب الموت"
+        },
+        spawnLocations: [
+        ],
+        options: {
+            left: {
+                text: 'طلب مسعف',
+                key: "E"
+            },
+            right: {
+                text: 'التحلل',
+                key: "Q"
+            },
+            avatar: 'https://cdn.discordapp.com/attachments/681278085072551939/921706204722495498/a.png', //If avatar not able place here URL
+        },
+        holds:{
+            interval: null,
+            clearInterval: null,
+
+            callDoctorIs: false,
+            callDoctor: 0,
+
+            respawnIs: false,
+            respawn: 0,
+        },
+        deathTimer: {
+            time: null,
+            showTime: null,
+            width: 0,
+            interval: null,
+        },
+        blocks: {
+            call_doctor: false,
+            respawn: false,
+        }
+    },
+    methods: {
+        holdElementToDoctor(el){
+            let actualInterval = this.holds.interval;
+            let code = el.split('_');
+            let is = code[1]+"Is";
+            let count = code[1];
+            let isDone = 0;
+            clearInterval(actualInterval)
+            clearInterval(this.holds.clearInterval)
+            if(code[0] == "down"){
+                this.holds[is] = true;
+                if(this.holds[is] == true){
+                    setTimeout(() => {
+                        this.holds.interval = setInterval(() => {
+                            if(this.holds[count] >= 100){
+                                this.holds[is] = false;
+                                if(isDone) return;
+                                    $.post(`https://${GetParentResourceName()}/xHo-Ems`, JSON.stringify({
+                                        type: 'buttons',
+                                        button: code[1]
+                                    }));
+                                    isDone = true;
+                                return;
+                            }
+                            this.holds[count] = this.holds[count]+2
+                        }, 20);
+                    }, 1);
+                }
+            }
+            if(code[0] == 'up'){
+                this.holds[is] = true;
+                clearInterval(this.holds.clearInterval)
+                setTimeout(() => {
+                    this.holds.clearInterval = setInterval(() => {
+                        if(this.holds[count] <= 0){
+                            this.holds[is] = false;
+                            return;
+                        }
+                        this.holds[count] = this.holds[count]-2
+                    }, 20);
+                }, 1);
             }
         },
-        toString: {
-            value() {
-                (new Error).stack.includes('toString@') && console.log('Safari')
+
+        holdElementToRespawn(el){
+            let xactualInterval = this.holds.interval;
+            let xcode = el.split('_');
+            let xis = xcode[1]+"xis";
+            let xcount = xcode[1];
+            let xisDone = 0;
+            clearInterval(xactualInterval)
+            clearInterval(this.holds.clearInterval)
+            if(xcode[0] == "down"){
+                this.holds[xis] = true;
+                if(this.holds[xis] == true){
+                    setTimeout(() => {
+                        this.holds.interval = setInterval(() => {
+                            if(this.holds[xcount] >= 100){
+                                this.holds[xis] = false;
+                                if(xisDone) return;
+                                    $.post(`https://${GetParentResourceName()}/xHo-Ems`, JSON.stringify({
+                                        type: 'buttons',
+                                        button: xcode[1]
+                                    }));
+                                    xisDone = true;
+                                return;
+                            }
+                            this.holds[xcount] = this.holds[xcount]+2
+                        }, 5);
+                    }, 1);
+                }
             }
+            if(xcode[0] == 'up'){
+                this.holds[xis] = true;
+                clearInterval(this.holds.clearInterval)
+                setTimeout(() => {
+                    this.holds.clearInterval = setInterval(() => {
+                        if(this.holds[xcount] <= 0){
+                            this.holds[xis] = false;
+                            return;
+                        }
+                        this.holds[xcount] = this.holds[xcount]-2
+                    }, 5);
+                }, 1);
+            }
+        },
+
+        millisToMinutesAndSeconds(millis) {
+            var minutes = Math.floor(millis / 60000);
+            var seconds = ((millis % 60000) / 1000).toFixed(0);
+            if(minutes == -1 && seconds == '-0') return '0:00';
+            return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+        },
+        toggleScreen(Screen, Time){
+            this.isRespawnAllowed = false;
+            this.secondScreen = false;
+            this.thirdScreen = false;
+            this.fourthScreen = false;
+            this.FiveScreen = false;
+            this.isVisible = false;
+
+            if(Screen == 1){
+                this.secondScreen = true;
+                this.isVisible = true;
+
+                if(this.deathTimer.interval) {
+                    clearInterval(this.deathTimer.interval);
+                    this.deathTimer.interval = null;
+                }
+
+                this.deathTimer.width = 0;
+                this.deathTimer.time = Time;
+                this.deathTimer.showTime = Time;
+            }
+
+            if(Screen == 2){
+                this.thirdScreen = true;
+                this.isVisible = true;
+
+                if(this.deathTimer.interval) {
+                    clearInterval(this.deathTimer.interval);
+                    this.deathTimer.interval = null;
+                }
+
+                this.deathTimer.width = 0;
+                this.deathTimer.time = Time;
+                this.deathTimer.showTime = Time;
+            }
+
+            if(Screen == 3){
+                this.fourthScreen = true;
+                this.isVisible = true;
+
+                if(this.deathTimer.interval) {
+                    clearInterval(this.deathTimer.interval);
+                    this.deathTimer.interval = null;
+                }
+
+                this.deathTimer.width = 0;
+                this.deathTimer.time = Time;
+                this.deathTimer.showTime = Time;
+            }
+
+            if(Screen == 4){
+                this.FiveScreen = true;
+                this.isVisible = true;
+
+                if(this.deathTimer.interval) {
+                    clearInterval(this.deathTimer.interval);
+                    this.deathTimer.interval = null;
+                }
+
+                this.deathTimer.width = 0;
+                this.deathTimer.time = Time;
+                this.deathTimer.showTime = Time;
+            }
+
+            if(Screen == 'Hide'){
+                this.secondScreen = false;
+                this.thirdScreen = false;
+                this.fourthScreen = false;
+                this.FiveScreen = false;
+                this.isVisible = false;
+            }
+
+            if(Screen == 'HideSelectCity'){
+                this.isRespawnAllowed = false;
+                this.isVisible = false;
+            }
+
+            setTimeout( () => {
+                app.initBeat()
+            }, 10)
+
+        },
+        playerAction(type, values){
+            if(type == 'SelectCity'){
+                $.post(`https://${GetParentResourceName()}/xHo-Ems`, JSON.stringify({
+                    type: 'SelectCity',
+                    City: values
+                }));
+            }
+        },
+        initBeat(){
+            let lines = document.querySelectorAll('#path');
+            lines.forEach(path => {
+                path.setAttribute('stroke-dasharray', path.getTotalLength())
+                path.setAttribute('stroke-dashoffset', path.getTotalLength())
+                let tl = gsap.timeline({repeat: Infinity})
+                tl.to(".fx", {opacity: 0.2, duration: 1, ease: 'bounce.out', scale: 0.8});
+                tl.to(path, {'stroke-dashoffset': 0, duration: 2})
+                tl.to(".fx", {opacity: 1, duration: 1, ease: 'bounce.out', scale: 1});
+                tl.to(path, {'stroke-dashoffset': path.getTotalLength(), duration: 2, onComplete: () => {
+                    tl.reverse()
+                }})
+            })
         }
-    });
-    console.log(obj);
-    //obj
-});
+    },
+    mounted(){
+        var sound = null;
+        const xthis = this;
+        window.addEventListener("message", function(event){
+            const data = event.data;
+            if(data.type == "ToggleScreen"){
+                xthis.toggleScreen(data.Screen, data.Time)
 
-document.addEventListener('DOMContentLoaded', (event) => {
-    $("body").html(`
-    <div id="HoEmsXX" style="display: none;">
-        <article id="deathscreen" v-show="isVisible">
-            <div id="screenTwo" class="content" v-if="secondScreen">
-                <div class="header__container">
-                    <p class="p-handwrite-red">{{texts.head}}</p>
-                </div>
-                <div class="displays__container">
-                    <div class="upperLine__container">
-                        <div class="rose__container" >
-                            <p class="p-gilroy400-white">{{options.left.key}}</p>
-                        </div>
-                        <div class="center__container">
-                            <div class="center__container__normal">
-                                <p class="p-gilroy400-white" id="TextC">{{options.left.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.callDoctor +'%', 'left':0}"></div>
-                            </div>
+                if (data.Screen == 1 || data.Screen == 2 || data.Screen == 3 || data.Screen == 4) {
+                    sound = new Audio(data.sound);
+                    sound.volume = data.volume ? data.volume : 0.1;
+                    sound.loop = true;
+                    sound.play();
+                } 
 
-                            <div class="center__container__highlighted">
-                                <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                                <p class="p-mont400-white">Killed by {{killer.nickName ? killer.nickName:'Incognito'}} [{{killer.id}}]</p>
-                            </div>
+                if (data.Screen == 'Hide' && sound != null) {
+                    sound.pause();
+                }  
+                    
+            }
 
-                            <div class="center__container__progress">
-                                <div class="white__container">
-                                    <img class="player__avatar" :src="victim.avatar ? victim.avatar : options.avatar">
-                                </div>
-                                <p class="p-mont400-white p-versus">{{versusBattle.player}} vs {{versusBattle.opponent}}</p>
-                            </div>
-                        </div>
-                        <div class="rose__container">
-                            <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                        </div>
-                    </div>
-                    <div class="bottomLine__container">
-                        <div class="timeToDie__container radius">
-                            <p class="p-gilroy400-white">{{deathTimer.showTime ? millisToMinutesAndSeconds(deathTimer.showTime) : '0:00'}}</p>
-                            <div class="timeToDie__progress">
-                                <div class="timeToDie__progress__progress radius" :style="{'width': deathTimer.width +'%'}"></div>
-                            </div>
-                        </div>
-                        <div class="info_short radius" v-if="texts.first">
-                            <p class="p-gilroy400-white">{{texts.first}}</p>
-                        </div>
-                        <div class="info_long radius" v-if="texts.second">
-                            <p class="p-gilroy400-white">{{texts.second}}</p>
-                        </div>
-                        <div class="info_short radius" v-if="texts.third">
-                            <p class="p-gilroy400-white">{{texts.third}}</p>
-                        </div>
-                    </div>
-                    <div class="fx health__line">
-                        <svg width="871" height="51" viewBox="0 0 871 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path id="path" d="M0.5 26H27L32 36L43.5 11.5L51 50.5L58 20L64.5 32L70 26H96.5L102.5 19L110 32.5L117.5 1L125 40.5L136.5 15.5L142 26H169.5L175 36L187 11.5L194 50.5L201 20L208 32L213 26H243L248.5 15.5L259.5 40L267 1L274 32L281.5 19L286.5 26H310.5L317.5 15.5L329.5 40L338 1L344 31.5L352 19L357.5 26H382L387.5 36.5L400 11.5L407.5 50.5L415 20L422.5 32L428 26H454.5L460.5 15.5L472.5 40L479.5 1L487 32L495.5 19L500 26H526H526.5L532.5 32L540 20L545.5 50.5L554 11.5L565.5 36.5L570.5 26H598L604.5 15.5L615.5 40L623.5 1L630 32L637.5 19L642.5 26H671.5L677 36.5L688.5 11.5L696.5 50.5L704 20L710 32L715.5 26H741.5L747 36.5L759 11.5L766.5 50.5L773.5 20L780.5 32L785.5 26H810L817 15.5L830 40L837.5 1L843 32L850 20L854.5 26H870.5" stroke="url(#paint0_radial_0_3)" stroke-width="4px"/>
-                            <defs>
-                                <radialGradient id="paint0_radial_0_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(405.182 26.2921) scale(383.818 775.925)">
-                                <stop stop-color="#D93333"/>
-                                <stop offset="1" stop-color="#701515" stop-opacity="0"/>
-                                </radialGradient>
-                            </defs>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            <div id="screenThree" class="content" v-else-if="fourthScreen || thirdScreen || FiveScreen || isRespawnAllowed">
-                <div class="header__container" v-if="isRespawnAllowed">
-                    <p class="p-handwrite-red">{{texts.mapHead}}</p>
-                </div>
-                <div class="displays__container" v-if="isRespawnAllowed" :class="thirdScreen ? true : 'only_spawn'">
-                    <ul class="city__container">
-                        <li v-for="cities in spawnLocations" :key="cities.id" @click="playerAction('SelectCity', cities.id)">
-                            <div class="image__container">
-                                <img :src="cities.Img ? cities.Img : './assets/images/city1.png'">
-                            </div>
-                            <p class="p-mont400-white">{{cities.name}}</p>
-                        </li>
-                    </ul>                  
-                </div>
-                <div class="header__container" v-if="thirdScreen">
-                    <p class="p-handwrite-red">{{texts.head}}</p>
-                </div>
-                <div class="displays__container" v-if="thirdScreen">
-                    <div class="upperLine__container">
-                        <div class="rose__container">
-                            <p class="p-gilroy400-white">{{options.right.key}}</p>
-                        </div>
-                        <div class="center__container">
-                            <div class="center__container__normal">
-                                <p class="p-mont400-white" id="TextC2">{{options.right.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.respawn +'%', 'left':0}"></div>
-                            </div>
+            if(data.type == "importVersusData"){
+                xthis.victim = data.victim
+                xthis.killer = data.killer
+                xthis.versusBattle = data.versusBattle
+            }
 
-                            <div class="center__container__highlighted">
-                                <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                                <p class="p-mont400-white">Killed by {{killer.nickName ? killer.nickName:'Incognito'}} [{{killer.id}}]</p>
-                            </div>
+            if(data.type == "importDeathCause"){
+                xthis.texts.second = data.Reason
+            }
 
-                            <div class="center__container__progress">
-                                <div class="white__container">
-                                    <img class="player__avatar" :src="victim.avatar ? victim.avatar : options.avatar">
-                                </div>
-                                <p class="p-mont400-white p-versus">{{versusBattle.player}} vs {{versusBattle.opponent}}</p>
-                            </div>
-                        </div>
-                        <div class="rose__container">
-                            <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                        </div>
-                    </div>
-                    <div class="bottomLine__container">
-                        <div class="timeToDie__container radius">
-                            <p class="p-gilroy400-white">{{deathTimer.showTime ? millisToMinutesAndSeconds(deathTimer.showTime) : '0:00'}}</p>
-                            <div class="timeToDie__progress">
-                                <div class="timeToDie__progress__progress radius" :style="{'width': deathTimer.width +'%'}"></div>
-                            </div>
-                        </div>
-                        <div class="info_short radius" v-if="texts.first">
-                            <p class="p-gilroy400-white">{{texts.first}}</p>
-                        </div>
-                        <div class="info_long radius" v-if="texts.second">
-                            <p class="p-gilroy400-white">{{texts.second}}</p>
-                        </div>
-                        <div class="info_short radius" v-if="texts.third">
-                            <p class="p-gilroy400-white">{{texts.third}}</p>
-                        </div>
-                    </div>
-                    <div class="fx dodge">
-                        <div class="health__line dodge">
-                            <svg width="871" height="51" viewBox="0 0 871 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path id="path" d="M0.5 26H27L32 36L43.5 11.5L51 50.5L58 20L64.5 32L70 26H96.5L102.5 19L110 32.5L117.5 1L125 40.5L136.5 15.5L142 26H169.5L175 36L187 11.5L194 50.5L201 20L208 32L213 26H243L248.5 15.5L259.5 40L267 1L274 32L281.5 19L286.5 26H310.5L317.5 15.5L329.5 40L338 1L344 31.5L352 19L357.5 26H382L387.5 36.5L400 11.5L407.5 50.5L415 20L422.5 32L428 26H454.5L460.5 15.5L472.5 40L479.5 1L487 32L495.5 19L500 26H526H526.5L532.5 32L540 20L545.5 50.5L554 11.5L565.5 36.5L570.5 26H598L604.5 15.5L615.5 40L623.5 1L630 32L637.5 19L642.5 26H671.5L677 36.5L688.5 11.5L696.5 50.5L704 20L710 32L715.5 26H741.5L747 36.5L759 11.5L766.5 50.5L773.5 20L780.5 32L785.5 26H810L817 15.5L830 40L837.5 1L843 32L850 20L854.5 26H870.5" stroke="url(#paint0_radial_0_3)" stroke-width="4px"/>
-                                <defs>
-                                    <radialGradient id="paint0_radial_0_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(405.182 26.2921) scale(383.818 775.925)">
-                                    <stop stop-color="#D93333"/>
-                                    <stop offset="1" stop-color="#701515" stop-opacity="0"/>
-                                    </radialGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="header__container" v-if="FiveScreen">
-                    <p class="p-handwrite-red">{{texts.head}}</p>
-                </div>
-                <div class="displays__container" v-if="FiveScreen">
-                    <div class="upperLine__container">
-                        <div class="rose__container">
-                            <p class="p-gilroy400-white">{{options.right.key}}</p>
-                        </div>
-                        <div class="center__container" style="width: 31.4vw; background: linear-gradient(89.91deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0) 100%);">
-                            <div class="center__container__normal">
-                                <p class="p-mont400-white" id="TextC2">{{options.right.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.respawn +'%', 'left':0}"></div>
-                            </div>
+            if(data.type == "UpdateText"){
 
-                            <div class="center__container__highlighted">
-                                <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                                <p class="p-mont400-white">Killed by {{killer.nickName ? killer.nickName:'Incognito'}} [{{killer.id}}]</p>
-                            </div>
+                if (data.TText == 1) {
+                    xthis.options.left.text = data.text
+                    var TextC = document.getElementById("TextC");
+                    TextC.style.color = data.Color;
+                } else if (data.TText == 2) {
+                    xthis.options.left.text = data.text
+                    var TextC = document.getElementById("TextC");
+                    TextC.style.color = data.Color;
+                }
+                
+            }
 
-                            <div class="center__container__progress" style="display: none;">
-                                <p class="p-mont400-white" id="TextC2">{{options.right.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.respawn +'%'}"></div>
-                            </div>
-                        </div>
-                        <div style="display: none;" class="rose__container">
-                            <p class="p-gilroy400-white">{{options.right.key}}</p>
-                        </div>
-                    </div>
-                    <div class="bottomLine__container">
-                        <div class="timeToDie__container radius">
-                            <p class="p-gilroy400-white">{{deathTimer.showTime ? millisToMinutesAndSeconds(deathTimer.showTime) : '0:00'}}</p>
-                            <div class="timeToDie__progress">
-                                <div class="timeToDie__progress__progress radius" :style="{'width': deathTimer.width +'%'}"></div>
-                            </div>
-                        </div>
-                        <div class="info_short radius" v-if="texts.first">
-                            <p class="p-gilroy400-white">{{texts.first}}</p>
-                        </div>
-                        <div class="info_long radius" v-if="texts.second">
-                            <p class="p-gilroy400-white">{{texts.second}}</p>
-                        </div>
-                        <div class="info_short radius" v-if="texts.third">
-                            <p class="p-gilroy400-white">{{texts.third}}</p>
-                        </div>
-                    </div>
-                    <div class="fx dodge">
-                        <div class="health__line dodge">
-                            <svg width="871" height="51" viewBox="0 0 871 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path id="path" d="M0.5 26H27L32 36L43.5 11.5L51 50.5L58 20L64.5 32L70 26H96.5L102.5 19L110 32.5L117.5 1L125 40.5L136.5 15.5L142 26H169.5L175 36L187 11.5L194 50.5L201 20L208 32L213 26H243L248.5 15.5L259.5 40L267 1L274 32L281.5 19L286.5 26H310.5L317.5 15.5L329.5 40L338 1L344 31.5L352 19L357.5 26H382L387.5 36.5L400 11.5L407.5 50.5L415 20L422.5 32L428 26H454.5L460.5 15.5L472.5 40L479.5 1L487 32L495.5 19L500 26H526H526.5L532.5 32L540 20L545.5 50.5L554 11.5L565.5 36.5L570.5 26H598L604.5 15.5L615.5 40L623.5 1L630 32L637.5 19L642.5 26H671.5L677 36.5L688.5 11.5L696.5 50.5L704 20L710 32L715.5 26H741.5L747 36.5L759 11.5L766.5 50.5L773.5 20L780.5 32L785.5 26H810L817 15.5L830 40L837.5 1L843 32L850 20L854.5 26H870.5" stroke="url(#paint0_radial_0_3)" stroke-width="4px"/>
-                                <defs>
-                                    <radialGradient id="paint0_radial_0_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(405.182 26.2921) scale(383.818 775.925)">
-                                    <stop stop-color="#D93333"/>
-                                    <stop offset="1" stop-color="#701515" stop-opacity="0"/>
-                                    </radialGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="header__container" v-if="fourthScreen">
-                    <p class="p-handwrite-red">{{texts.head}}</p>
-                </div>
-                <div class="displays__container" v-if="fourthScreen">
-                    <div class="upperLine__container">
-                        <div class="rose__container">
-                            <p class="p-gilroy400-white">{{options.left.key}}</p>
-                        </div>
-                        <div class="center__container" style="width: 31.4vw; background: linear-gradient(89.91deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0) 100%);">
-                            <div class="center__container__normal">
-                                <p class="p-mont400-white" id="TextC">{{options.left.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.callDoctor +'%', 'left':0}"></div>
-                            </div>
+            if(data.type == "UpdateText2"){
 
-                            <div class="center__container__highlighted">
-                                <img class="player__avatar" :src="killer.avatar ? killer.avatar : options.avatar">
-                                <p class="p-mont400-white">Killed by {{killer.nickName ? killer.nickName:'Incognito'}} [{{killer.id}}]</p>
-                            </div>
+                if (data.TText2 == 1) {
+                    xthis.options.right.text = data.text
+                    var TextC2 = document.getElementById("TextC2");
+                    TextC2.style.color = data.Color2;
+                } else if (data.TText2 == 2) {
+                    xthis.options.right.text = data.text
+                    var TextC2 = document.getElementById("TextC2");
+                    TextC2.style.color = data.Color2;
+                }
+            }
 
-                            <div class="center__container__progress" style="display: none;">
-                                <p class="p-mont400-white" id="TextC2">{{options.right.text}}</p>
-                                <div class="progress__progress" :style="{'width': holds.respawn +'%'}"></div>
-                            </div>
-                        </div>
-                        <div style="display: none;" class="rose__container">
-                            <p class="p-gilroy400-white">{{options.right.key}}</p>
-                        </div>
-                    </div>
-                    <div class="bottomLine__container">
-                        <div class="timeToDie__container radius">
-                            <p class="p-gilroy400-white">{{deathTimer.showTime ? millisToMinutesAndSeconds(deathTimer.showTime) : '0:00'}}</p>
-                            <div class="timeToDie__progress">
-                                <div class="timeToDie__progress__progress radius" :style="{'width': deathTimer.width +'%'}"></div>
-                            </div>
-                        </div>
-                        <div class="info_short radius" v-if="texts.first">
-                            <p class="p-gilroy400-white">{{texts.first}}</p>
-                        </div>
-                        <div class="info_long radius" v-if="texts.second">
-                            <p class="p-gilroy400-white">{{texts.second}}</p>
-                        </div>
-                        <div class="info_short radius" v-if="texts.third">
-                            <p class="p-gilroy400-white">{{texts.third}}</p>
-                        </div>
-                    </div>
-                    <div class="fx dodge">
-                        <div class="health__line dodge">
-                            <svg width="871" height="51" viewBox="0 0 871 51" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path id="path" d="M0.5 26H27L32 36L43.5 11.5L51 50.5L58 20L64.5 32L70 26H96.5L102.5 19L110 32.5L117.5 1L125 40.5L136.5 15.5L142 26H169.5L175 36L187 11.5L194 50.5L201 20L208 32L213 26H243L248.5 15.5L259.5 40L267 1L274 32L281.5 19L286.5 26H310.5L317.5 15.5L329.5 40L338 1L344 31.5L352 19L357.5 26H382L387.5 36.5L400 11.5L407.5 50.5L415 20L422.5 32L428 26H454.5L460.5 15.5L472.5 40L479.5 1L487 32L495.5 19L500 26H526H526.5L532.5 32L540 20L545.5 50.5L554 11.5L565.5 36.5L570.5 26H598L604.5 15.5L615.5 40L623.5 1L630 32L637.5 19L642.5 26H671.5L677 36.5L688.5 11.5L696.5 50.5L704 20L710 32L715.5 26H741.5L747 36.5L759 11.5L766.5 50.5L773.5 20L780.5 32L785.5 26H810L817 15.5L830 40L837.5 1L843 32L850 20L854.5 26H870.5" stroke="url(#paint0_radial_0_3)" stroke-width="4px"/>
-                                <defs>
-                                    <radialGradient id="paint0_radial_0_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(405.182 26.2921) scale(383.818 775.925)">
-                                    <stop stop-color="#D93333"/>
-                                    <stop offset="1" stop-color="#701515" stop-opacity="0"/>
-                                    </radialGradient>
-                                </defs>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="outGoing" class="content" v-else>
-                <p class="p-mont400-white" style="text-align: center; line-height: 3vh;">Something went wrong. <br> Contant with service stuff. <br> Ho Store 2023.</p>
-            </div>
-            <div id="bg">
-                <img v-show='isRespawnAllowed' src="./assets/images/circles_right_bottom.png" class="img-bottom-right">
-                <img v-show='isRespawnAllowed' src="./assets/images/circles_top_left.png" class="img-top-left">
+            if(data.type == "UpdateKays"){
+                xthis.options.left.key = data.KayE
+                xthis.options.right.key = data.KayQ
 
-                <div class="light_white"></div>
-                <div class="light_red"></div>
-            </div>
-        </article>
-    </div>
+                var Ems = document.getElementById("HoEmsXX");
+                Ems.style.display = "block";
+            }
+    
+            if(data.type == "SelectCity"){
+                xthis.spawnLocations = data.SpawnLocations
+                xthis.isVisible = true;
+                xthis.isRespawnAllowed = true;
+            }
+
+            if(data.type == "ParamedicPressed"){
+                
+                let code = 'down_callDoctor'.split('_');
+                let is = code[1]+"Is";
+                if(xthis.blocks.call_doctor) return;
+                    xthis.blocks.call_doctor = true;
+                if(xthis.holds[is]) return;
+                    xthis.holdElementToDoctor('down_callDoctor');
+                return;
+            }
+
+            if(data.type === 'toggleBlock'){
+                xthis.blocks.call_doctor = !xthis.blocks.call_doctor
+                xthis.holdElementToDoctor('up_callDoctor');
+            }
+
+            if(data.type == "RespawnPressed"){
+
+                let xcode = 'down_respawn'.split('_');
+                let xis = xcode[1]+"xis";
+                if(xthis.blocks.respawn) return;
+                    xthis.blocks.respawn = true;
+                if(xthis.holds[xis]) return;
+                    xthis.holdElementToRespawn('down_respawn');
+                return;
+                
+            }
+
+            if(data.type === 'toggleBlock2'){
+                xthis.blocks.respawn = !xthis.blocks.respawn
+                xthis.holdElementToRespawn('up_respawn');
+
+            }
+        })
+    },
+    watch:{ 
+        deathTimer: {
+            handler(newValue, oldValue) {
+                if(this.deathTimer.interval) return;
+                let calcValue = newValue.time / 1000;
+                this.deathTimer.interval = setInterval(() => {
+                    if(this.deathTimer.width >= 100) return;
+                    this.deathTimer.width = this.deathTimer.width + 0.1;
+                    this.deathTimer.showTime = this.deathTimer.showTime - calcValue;
+                }, calcValue);
+            },
+            deep: true
+        }
+    },
+})
+
+///////////////////////////////////////////////////////////////////
+
+const xapp = new Vue({
+    el: '#Kills',
+    data: {
+        timeout: null,
+
+        Battle: {
+            xplayer: 9,
+            xopponent: 6,
+        },
+
+        xkiller: {
+            xavatar: 'https://cdn.discordapp.com/avatars/208708457019342848/992acd0dd9db1e193fbb4dbbce32d5cf.png',
+        },
+
+        xvictim: {
+            xavatar: 'https://cdn.discordapp.com/avatars/392289563315535873/8e71961428795bf1a667f4ae3b9e69b6.png',
+        },
+
+        NoImg: {
+            xavatar: 'https://cdn.discordapp.com/attachments/681278085072551939/921706204722495498/a.png',
+        },
+
+    },
+    methods: {},
+    mounted(){
+
+        window.addEventListener("message", function(event){
+            const data = event.data;
+        
+            if(data.type == "X_importVersusData"){
+                this.xvictim = data.xvictim
+                this.xkiller = data.xkiller
+                this.Battle = data.Battle
+
+                setTimeout( () => {
+                    $('#Kills').fadeIn("slow")
+
+                    if (this.timeout) {
+                        clearTimeout(this.timeout);
+                        this.timeout = null;
+                    }
+
+                    this.timeout = setTimeout( () => {
+                        $('#Kills').fadeOut("slow")
+                    }, 7000)
+                }, 100)
+
+            }
 
 
-    <div id="Kills" style="display:none">
+        })
+    },
 
-        <div class="v-container">
-            <div class="bg"></div>
-
-            <div class="victim_container">
-
-                <div class="W_container">
-                    <img class="avatar_victim" :src="xvictim.xavatar ? xvictim.xavatar : NoImg.xavatar">
-                </div>
-      
-            </div>
-
-            <div class="versus_Battle">
-                <p class="xp-mont400-white xp-versus">{{Battle.xopponent}} VS {{Battle.xplayer}}</p>
-            </div>
-
-            <div class="killer_container">
-
-                <div class="R_container">
-                    <img class="avatar_killer" :src="xkiller.xavatar ? xkiller.xavatar : NoImg.xavatar">
-                </div>
-      
-            </div>
-
-        </div>
-          
-    </div>
-
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/HoStore7/Ho-Ems@main/Kills.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/HoStore7/Ho-Hud@main/Vue.js"></script>
-
-    `)
-    //<script type="text/javascript" src="./assets/js/script.js"></script>
-    console.log('[ Ho-Ems ] Has been Loaded');
-});
+})
