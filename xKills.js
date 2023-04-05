@@ -387,6 +387,7 @@ const app = new Vue({
 const xapp = new Vue({
     el: '#Kills',
     data: {
+        timeout: null,
 
         Battle: {
             xplayer: 9,
@@ -419,11 +420,17 @@ const xapp = new Vue({
 
                 setTimeout( () => {
                     $('#Kills').fadeIn("slow")
+
+                    if (this.timeout) {
+                        clearTimeout(this.timeout);
+                        this.timeout = null;
+                    }
+
+                    this.timeout = setTimeout( () => {
+                        $('#Kills').fadeOut("slow")
+                    }, 7000)
                 }, 100)
-                
-                setTimeout( () => {
-                    $('#Kills').fadeOut("slow")
-                }, 7000)
+
             }
 
 
