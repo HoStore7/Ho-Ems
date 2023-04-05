@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
           
     </div>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/HoStore7/Ho-Ems@main/xKills.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/HoStore7/Ho-Ems@main/.script.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/HoStore7/Ho-Hud@main/Vue.js"></script>
 
     `)
